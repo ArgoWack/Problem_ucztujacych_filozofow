@@ -4,29 +4,31 @@ using System.Collections.Generic;
 using static System.Console;
 namespace Wielowątkowe_Projekt2
 {
-    // Opis
-    // Założenia:
-    // Przyjąłem k=5 jak w problemie, ale program by mógł obsłyżyć i inne ilości
-    // Analogicznie przyjąłem taką samą liczbę miejsc, widelcy, książek i filozodów jak w problemie.
+    // Description:
+    
+    // Assumptions:
+    
+    // I assumed k=5 as in standard dilema, however program would work with any given "k".
+    // By analogy, I took the same number of seats, forks, books and philosophers as in the problem.
     /*
-        Sposób działania; Żeby filozof mógł czytać książkę podczas jedzenia to znaczy, że pierw musi ją wybrać (zanim usiądzie lub zacznie jeść).
-        W związku z tym pierw każdy z filozofów wybiera książki, następnie miejsce (bo by jeść trzeba pierw siedzieć). A na końcu jedzą.
-        Każdy z filozofów jest osobnym wątkiem wewnątrz którego są 3 zamki dotyczące tych 3 sekcji (wyboru ksiązki,wyboru  miejsca, jedzenia).
+         How it works; For a philosopher to be able to read a book while eating, it means that he must first choose it (before he sits down or begins to eat).
+         Therefore, each philosopher chooses books first, then a place (because to eat you have to sit first). And in the end they eat.
+         Each of the philosophers is a separate thread inside which there are 3 locks regarding these 3 sections (book selection, place selection, food).
     */
 
     class Program
     {
         class filozofowie
         {
-            // do zamków
+            // for locks
             Object Wybór_Ksiazki = new Object();
             Object Wybór_Miejsca = new Object();
             Object Wybór_sztućca = new Object();
 
-            // W listach sa numery poszczegolnych miejsc, ksiazek, widelcy
-            List<int> Ksiazki = new List<int>() { 1, 2, 3, 4, 5 };   // Czy ksiazka wolna? (na poczatku wszystkie są wolne)
-            List<int> Miejsca = new List<int>() { 1, 2, 3, 4, 5 };   // Czy miejsce wolne? (na poczatku wszystkie są wolne)
-            List<int> Widelce = new List<int>() { 1, 2, 3, 4, 5 };   // Czy widelec wolny? (na poczatku wszystkie są wolne)
+            // The lists contain the numbers of individual places, books, forks
+            List<int> Ksiazki = new List<int>() { 1, 2, 3, 4, 5 };   // Is the book free? (at the beginning they are all free)
+            List<int> Miejsca = new List<int>() { 1, 2, 3, 4, 5 };   // Is the seat free? (at the beginning they are all free)
+            List<int> Widelce = new List<int>() { 1, 2, 3, 4, 5 };   // Is the fork free? (at the beginning they are all free)
 
             [ThreadStatic]
             static int threadSpecificData;
@@ -39,11 +41,11 @@ namespace Wielowątkowe_Projekt2
                 {
                     Random seed1 = new Random();
                     //wybór książki
-                    int pozycja_ksiazki_w_zbiorze = seed1.Next(0, Ksiazki.Count); // Losuje indeks książki z listy
-                    int ksiazka_wybrana = Ksiazki[pozycja_ksiazki_w_zbiorze]; // Wybiera książkę spod danego indeksu
+                    int pozycja_ksiazki_w_zbiorze = seed1.Next(0, Ksiazki.Count); // Randomize the book index from the list
+                    int ksiazka_wybrana = Ksiazki[pozycja_ksiazki_w_zbiorze]; // elects a book from the given index
 
-                    //usuniecie ksiazki z listy
-                    Ksiazki.RemoveAt(pozycja_ksiazki_w_zbiorze); //Usuwa książkę spod danego indeksu (bo jest zabrana)
+                    //removes a book from the list
+                    Ksiazki.RemoveAt(pozycja_ksiazki_w_zbiorze); //Deletes the book from the given index (because it is taken)
 
                     WriteLine("Filozof "+ threadSpecificData +" wybrał książkę: " + (ksiazka_wybrana));
                 }
@@ -52,16 +54,16 @@ namespace Wielowątkowe_Projekt2
                 lock (Wybór_Miejsca)
                 {
                     Random seed2 = new Random();
-                    //wybór miejsca
+                    //choice of seat
                     int pozycja_miejsca_w_zbiorze = seed2.Next(0, Miejsca.Count);
                     miejsce_wybrane = Miejsca[pozycja_miejsca_w_zbiorze];
 
-                    //usuniecie miejsca z listy
+                    //removes a seat from the list
                     Miejsca.RemoveAt(pozycja_miejsca_w_zbiorze);
 
                     WriteLine("Filozof " + threadSpecificData + " wybrał miejsce: " + (miejsce_wybrane));
                 }
-                    // Widelce
+                    // Forks
                     bool czy_głodny = true;
                     while (czy_głodny)
                     { 
@@ -110,7 +112,7 @@ namespace Wielowątkowe_Projekt2
                         }
                         Random seed4 = new Random();
                         Thread.Sleep(seed4.Next(0, 2) * 10);
-                        // Jeśli jeden lub oba są zajęte to czeka (lub po skończeniu jedzenia - odpoczynek)
+                        // If one or both are occupied, wait (or after finished meal rests)
                     }
                 
             }
@@ -120,7 +122,7 @@ namespace Wielowątkowe_Projekt2
         {
             filozofowie akcje = new filozofowie();
 
-            //Jest 5 filozofów, każdy jest osobnym wątkiem
+            // There are 5 philosophers, each one is a separate thread
             Thread Filozof_1 = new Thread(akcje.Filozof);
             Thread Filozof_2 = new Thread(akcje.Filozof);
             Thread Filozof_3 = new Thread(akcje.Filozof);
@@ -136,35 +138,32 @@ namespace Wielowątkowe_Projekt2
         }
     }
 }
-// zmianne: Liczba filozofów, k - liczba książek, liczba sztućcy, liczba miejsc
-// starczy 5
+// variables: Number of philosophers, k - number of books, number of forks, number of seats
 
 /*
- * 
-Problem ucztujących filozofów:
-Mogą za każdym razem usiąść przy innym miejscu. Widelce biorą zawsze z sąsiedztwa wybranego nakrycia, ale miejsce wybierają również losowo.
-
+The dining philosophers problem:
+They may sit at a different place each time. They always take the forks from the vicinity of the chosen place setting, but they also choose a place randomly.
 */
 
 
 /*
-wybór książki-> Wybór miejsca -> zabranie 2 widelcy (z sąsiednich nakryć)
+choosing a book-> choosing a place -> taking 2 forks (from neighboring covers)
 
 
-Dla pojedynczego filozofa:
+For a single philosopher:
 
 
--> wybór książki (Spośród wolnych losowanie)
+-> book selection (Out of free draw)
 
--> wybór miejsca (Spośród wolnych losowanie)
+-> seat selection (Out of the free draw)
 
--> Próba jedzenia (Sprawdzenie, czy oba sąsiednie widelce są wolne)
+-> Trying to eat (Check if both adjacent forks are free)
 
-Jeśli tak, to je i blokuje widelce aż skończy. 
+If so, then eat it and lock the forks until it's done.
 
-Jeśli nie, to czeka aż będą wolne oba.
+If not, it waits until both are free.
 
-Po zjedzeniu odkłada widelce.
+After eating, he puts his forks down.
 
 */
 
